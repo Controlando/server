@@ -1,15 +1,15 @@
 var nodemailer = require('nodemailer');
 
 var transporte = nodemailer.createTransport({
-  service: 'gmail',
+  service: 'Hotmail',
   auth: {
-    user: 'danielfigueira31@gmail.com',
-    pass: '36563807dan'
+    user: 'controlandoFinancas@outlook.com',
+    pass: 'PocsLindas2018@'
   }
 });
 
 var Destino = {
-  from: 'danielfigueira31@gmail.com',
+  from: 'controlandoFinancas@outlook.com',
   to: '',
   subject: '',
   text: ''
