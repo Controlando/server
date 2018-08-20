@@ -5,6 +5,17 @@ const serverError = {success: false, message: "Erro interno de servidor"},
 const config = require("../secretKey/config");
 const servicoEmail = require("./email/email");
 const bcrypts = require("bcryptjs");
+var nodemailer = require('nodemailer');
+
+var transporte = nodemailer.createTransport({
+  service: 'Hotmail',
+  auth: {
+    user: 'controlandoFinancas@hotmail.com',
+    pass: 'PocsLindas2018@'
+  }
+});
+
+
 var con = mysql.createConnection({
     host: "localhost",
     user: "root",
@@ -47,7 +58,7 @@ const api = {
     }, 
     cadastroUsuario(req, res) {
         let user = {email: req.body.email, senha: req.body.senha, nome : req.body.nome}
-        const sql = "SELECT id FROM usuario WHERE email = ?"
+        let sql = "SELECT id FROM usuario WHERE email = ?"
         let senhaHash = bcrypts.hashSync(user.senha, 8);
         con.query(sql, [user.email], function(err, row) {
             if (err) {
@@ -63,14 +74,25 @@ const api = {
                                 res.status(500).json(serverError);
                             } else {
                                 if (row.affectedRows == 1) {
-                                    res.status(200).json({success: true, message: "Um email esta sendo enviado para voce, cheque seu email durante os proximos minutos"});
+                                    
+                                    var Destino = {
+                                        from: 'daniel_dbz@hotmail.com',
+                                        to: user.email,
+                                        subject: 'Bem vindo ao controlando',
+                                        text: 'Seja bem vindo ao controlando, sua vida financeira começa aqui !!'
+                                    }
+                                    transporte.sendMail(Destino, function(error, informacao){
+                                            if (error) {
+                                                console.log(error, informacao);
+                                                res.status(500).json({success: false, message: "erro no envio do email"});
+                                            } else {
+                                                res.status(200).json({success: true, message: "Um email esta sendo enviado para voce, cheque seu email durante os proximos minutos"});
+                                            }
+                                        });
                                 } else {
-                                    servicoEmail.Destino.to = user.email;
-                                    servicoEmail.Destino.text = "Bem vindo ao controlando";
-                                    servicoEmail.Destino.subject = "Conta criadaaaaaaaa";
-                                    servicoEmail.funcao.envioEmail(req, res, servicoEmail.Destino, function() {
-                                        res.status(200).json({success: true, message: "Registro realizado"});
-                                    });
+                                    
+                                    res.status(200).json({success: true, message: "Registro nao realizado"});
+                                
                                 }
                             }
                         });
