@@ -2,7 +2,7 @@ const express = require("express");
 const api = require("../api/api")
 const app = express.Router();
 const verificacao = require("../api/token/autorizacao");
-app.get("/login",verificacao, function(req, res) {
+app.post("/login", function(req, res) {
     console.log("Rota incial de get");
     api.login(req, res);
 });

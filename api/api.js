@@ -1,11 +1,12 @@
 const jwt = require("jsonwebtoken");
 const mysql = require("mysql");
-const serverError = {success: false, message: "Erro interno de servidor"},
-        notFound = {success: false, message: "Usuario nao encontrado no servidor"};
+const serverError = {success: false, message: "Erro interno de servidor"}, notFound = {success: false, message: "Usuario nao encontrado no servidor"};
 const config = require("../secretKey/config");
 const servicoEmail = require("./email/email");
 const bcrypts = require("bcryptjs");
 var nodemailer = require('nodemailer');
+const User = require('../classes/user');
+
 
 var transporte = nodemailer.createTransport({
   service: 'Hotmail',
@@ -16,22 +17,25 @@ var transporte = nodemailer.createTransport({
 });
 
 
+
 var con = mysql.createConnection({
     host: "localhost",
     user: "root",
     password: "root",
     database: "controlando"
-  });
+});
   
-  con.connect(function(err) {
+con.connect(function(err) {
     if (err) throw err;
     console.log("Connected!");
-  });
+});
 
 const api = {
     login(req, res) {
-        let user = {email: req.body.email, senha: req.body.senha};
+        let user = {email: req.body.email};
         const sql = "SELECT id, senha FROM usuario WHERE email = ?"
+        console.log(JSON.stringify(user));
+        res.status(200).json({email: user.email});
         con.query(sql, [user.email], function(err, row) {
             if (err) {
                 res.status(500).json(serverError);
@@ -47,7 +51,6 @@ const api = {
                                 expiresIn: 86400//um dia 
                             });
                             res.status(200).json(userLogin);
-                    
                         } else {
                             res.status(404).json(notFound);
                         }
@@ -100,6 +103,41 @@ const api = {
                 }
             }
         });
+    },
+    cadastroUsuarioNoEmail(req, res) {
+        let data = {nome: req.body.nome, email: req.body.email, senha: req.body.senha}
+        let sql = 'SELECT id FROM user WHERE email = ?';
+        let senhaHash = bcrypts.hashSync(data.senha, 8);
+        if ((data.name == '') || (data.name == undefined) || (data.email == '') || (data.email == undefined) || (data.senha == '') || (data.senha == undefined) ) {
+            res.status(200).json( {success: false, message: 'Dados incompletos'} );
+        }
+        con.query(sql, [data.email], function(err, row) {
+            if (err) {
+                res.status(500).json(serverError);
+            } else {
+                if (row.length == 1) {
+                    res.status(200).json({success: true, message: 'Usuario já cadastrado no sistema'});
+                } else {
+                    if (row.length == 0) {
+                        let user = new User(data.nome, data.senha, data.email);
+                        sql = 'INSERT INTO user(nome, email, senha) VALUES(?, ?, ?)'
+                        con.query(sql, [user.getNome, user.getEmail, user.getSenha], function(err, row) {
+                            if (err) {
+                                res.status(500).json(serverError);
+                            } else {
+                                if (row.affectedRows == 0) {
+                                    res.status(404).json({ success: false, message: 'Cadastro nao efetuado'});
+                                } else {
+                                    if (row.affectedRows == 1) {
+                                        res.status(404).json({ success: false, message: 'Cadastro efetuado efetuado'});
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }
+            }
+        })
     }
 }
 
