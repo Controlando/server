@@ -1,12 +1,12 @@
 const jwt = require("jsonwebtoken");
 const mysql = require("mysql");
-const serverError = {success: false, message: "Erro interno de servidor"}, notFound = {success: false, message: "Usuario nao encontrado no servidor"};
+const dataError = {success: false, message: "Erro nos dados"}, serverError = {success: false, message: "Erro interno de servidor"}, notFound = {success: false, message: "Usuario nao encontrado no servidor"};
 const config = require("../secretKey/config");
 const servicoEmail = require("./email/email");
 const bcrypts = require("bcryptjs");
 var nodemailer = require('nodemailer');
 const User = require('../classes/user');
-
+const database = require('../database/database')
 
 var transporte = nodemailer.createTransport({
   service: 'Hotmail',
@@ -17,7 +17,7 @@ var transporte = nodemailer.createTransport({
 });
 
 
-
+/*
 var con = mysql.createConnection({
     host: "localhost",
     user: "root",
@@ -29,14 +29,14 @@ con.connect(function(err) {
     if (err) throw err;
     console.log("Connected!");
 });
-
+*/
 const api = {
     login(req, res) {
         let user = {email: req.body.email};
         const sql = "SELECT id, senha FROM usuario WHERE email = ?"
         console.log(JSON.stringify(user));
-        res.status(200).json({email: user.email});
-        con.query(sql, [user.email], function(err, row) {
+        res.status(404).json({email: user.email});
+       /* con.query(sql, [user.email], function(err, row) {
             if (err) {
                 res.status(500).json(serverError);
             } else {
@@ -57,7 +57,7 @@ const api = {
                     }
                 }
             }
-        });
+        });*/
     }, 
     cadastroUsuario(req, res) {
         let user = {email: req.body.email, senha: req.body.senha, nome : req.body.nome}
@@ -109,7 +109,7 @@ const api = {
         let sql = 'SELECT id FROM user WHERE email = ?';
         let senhaHash = bcrypts.hashSync(data.senha, 8);
         if ((data.name == '') || (data.name == undefined) || (data.email == '') || (data.email == undefined) || (data.senha == '') || (data.senha == undefined) ) {
-            res.status(200).json( {success: false, message: 'Dados incompletos'} );
+            res.status(401).json( {success: false, message: 'Dados incompletos'} );
         }
         con.query(sql, [data.email], function(err, row) {
             if (err) {
@@ -138,7 +138,53 @@ const api = {
                 }
             }
         })
+    },
+    cadastroArray(req, res) {
+        let data = {email: req.body.email, nome: req.body.nome, senha: req.body.senha}
+        if ((data.email == undefined) || (data.email == '') || (data.nome == '') || (data.nome == undefined) || (data.senha == '') || (data.senha == undefined)) {
+            res.status(401).json(dataError);
+        }
+        let status = 2;
+        database.user.forEach(element => {
+            if (element.email === data.email) {
+                status=1;
+            }
+        });
+        if (status === 1) {
+            console.log("erro: "+ JSON.stringify(database.user))
+            res.status(410).json({success: false, message: 'Usuario ja existente'});
+        } else {
+            database.user.push(data);
+            console.log("200: "+JSON.stringify(database.user));
+            res.status(200).json({success: true, message: "Usuario cadastrado"});
+        }
+    },
+    loginArray(req, res) {
+        let data = {email: req.body.email, senha: req.body.senha}
+        let status =2;
+        let user ={ email: "", nome: "", senha: ""};
+        database.user.forEach(element => {
+            if (element.email === data.email) {
+                status=1;
+                user.email = element.email;
+                user.nome = element.nome;
+                console.log("teste: "+ user.nome);
+                user.senha = element.senha;
+            }
+        });
+        if (status == 1) {
+            let userLogin = {nome: user.nome, senha: user.senha, token: undefined, email: user.email};
+            userLogin.token = jwt.sign({nome: userLogin.nome, senha: userLogin.senha, email: user.email}, config.secret, {
+                expiresIn: 86400//um dia 
+            });
+            console.log(user.nome);
+            res.status(200).json({success: true, email: userLogin.email, senha: userLogin.senha, token: userLogin.token, nome: userLogin.nome})
+        } else {
+            console.log('teste')
+            res.status(404).json({success: false});
+        }
     }
+
 }
 
 module.exports = api;
