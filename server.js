@@ -24,6 +24,6 @@ app.use(function (req, res, next) {
     // Pass to next layer of middleware
     next();
 });
-app.listen(3000, "192.168.0.20", function() {
+app.listen(3000, "200.0.0.14", function() {
     console.log("Servidor funcionando na porta"+ JSON.stringify(this.address()));
 });

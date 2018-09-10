@@ -2,12 +2,13 @@ const express = require("express");
 const api = require("../api/api")
 const app = express.Router();
 const verificacao = require("../api/token/autorizacao");
-app.post("/loginArray", function(req, res) {
-    console.log("Rota incial de get");
-    api.loginArray(req, res);
+app.post("/login", function(req, res) {
+    console.log(JSON.stringify(req.body));
+    api.login(req, res);
 });
 app.post("/Cadastro", function(req, res) {
-    api.cadastroUsuario(req, res);
+    console.log(JSON.stringify("sem email:" +JSON.stringify(req.body)));
+    api.cadastroUsuarioNoEmail(req, res);
 });
 app.post('/teste', function(req, res) {
     console.log('Rota de teste para', JSON.stringify(req.body))

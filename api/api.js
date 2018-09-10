@@ -17,47 +17,52 @@ var transporte = nodemailer.createTransport({
 });
 
 
-/*
 var con = mysql.createConnection({
-    host: "localhost",
     user: "root",
     password: "root",
-    database: "controlando"
+    database: 'controlando'
 });
   
 con.connect(function(err) {
-    if (err) throw err;
-    console.log("Connected!");
+    if (err) {
+        console.log((err))
+        console.log("Erro de conexao");
+    } else {
+        console.log("Connected!");
+    }
+    
 });
-*/
+
 const api = {
     login(req, res) {
-        let user = {email: req.body.email};
-        const sql = "SELECT id, senha FROM usuario WHERE email = ?"
+        let user = {email: req.body.email, senha: req.body.senha};
+        const sql = "SELECT id, senha, nome FROM usuario WHERE email = ?"
         console.log(JSON.stringify(user));
-        res.status(404).json({email: user.email});
-       /* con.query(sql, [user.email], function(err, row) {
+        con.query(sql, [user.email], function(err, row) {
             if (err) {
+                console.log(err)
                 res.status(500).json(serverError);
             } else {
                 if (row.length == 0) {
+                    console.log('ASJDHSJHAD')
                     res.status(404).json(notFound);
                 } else {
                     if (row.length == 1) {
                         let compara = bcrypts.compareSync(user.senha, row[0].senha);
                         if (compara == true) {
+                            console.log('oi')
                             let userLogin = {nome: row[0].nome, id: row[0].id, token: undefined};
-                            userLogin.token = jwt.sign({nome: userLogin.nome, id: userLogin.id}, config.secret, {
+                            userLogin.token = jwt.sign({nome: userLogin.nome, id: userLogin.id, email: user.email}, config.secret, {
                                 expiresIn: 86400//um dia 
                             });
-                            res.status(200).json(userLogin);
+                            res.status(200).json({success: true, email: user.email, senha: user.senha, token: userLogin.token, nome: userLogin.nome})
                         } else {
-                            res.status(404).json(notFound);
+                            res.status(404).json({success: false});
                         }
                     }
                 }
             }
-        });*/
+        });
     }, 
     cadastroUsuario(req, res) {
         let user = {email: req.body.email, senha: req.body.senha, nome : req.body.nome}
@@ -106,30 +111,31 @@ const api = {
     },
     cadastroUsuarioNoEmail(req, res) {
         let data = {nome: req.body.nome, email: req.body.email, senha: req.body.senha}
-        let sql = 'SELECT id FROM user WHERE email = ?';
+        let sql = 'SELECT id FROM usuario WHERE email = ?';
         let senhaHash = bcrypts.hashSync(data.senha, 8);
-        if ((data.name == '') || (data.name == undefined) || (data.email == '') || (data.email == undefined) || (data.senha == '') || (data.senha == undefined) ) {
+        if ((data.nome == '') || (data.nome == undefined) || (data.email == '') || (data.email == undefined) || (data.senha == '') || (data.senha == undefined) ) {
+            console.log(JSON.stringify(data))
             res.status(401).json( {success: false, message: 'Dados incompletos'} );
-        }
+        } else {
         con.query(sql, [data.email], function(err, row) {
             if (err) {
                 res.status(500).json(serverError);
             } else {
                 if (row.length == 1) {
-                    res.status(200).json({success: true, message: 'Usuario já cadastrado no sistema'});
+                    res.status(409).json({success: true, message: 'Usuario já cadastrado no sistema'});
                 } else {
                     if (row.length == 0) {
                         let user = new User(data.nome, data.senha, data.email);
-                        sql = 'INSERT INTO user(nome, email, senha) VALUES(?, ?, ?)'
-                        con.query(sql, [user.getNome, user.getEmail, user.getSenha], function(err, row) {
+                        sql = 'INSERT INTO usuario(nome, email, senha) VALUES(?, ?, ?)'
+                        con.query(sql, [data.nome, data.email, senhaHash], function(err, row) {
                             if (err) {
                                 res.status(500).json(serverError);
                             } else {
                                 if (row.affectedRows == 0) {
-                                    res.status(404).json({ success: false, message: 'Cadastro nao efetuado'});
+                                    res.status(500).json({ success: false, message: 'Cadastro nao efetuado'});
                                 } else {
                                     if (row.affectedRows == 1) {
-                                        res.status(404).json({ success: false, message: 'Cadastro efetuado efetuado'});
+                                        res.status(200).json({ success: false, message: 'Cadastro efetuado efetuado'});
                                     }
                                 }
                             }
@@ -138,6 +144,7 @@ const api = {
                 }
             }
         })
+    }
     },
     cadastroArray(req, res) {
         let data = {email: req.body.email, nome: req.body.nome, senha: req.body.senha}
