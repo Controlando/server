@@ -190,8 +190,82 @@ const api = {
             console.log('teste')
             res.status(404).json({success: false});
         }
-    }
+    },
+    updateName(req, res) {
+        const dataUser = {email: req.body.email, novoNome: req.body.nome};
+        const sql = "SELECT id FROM user WHERE email = ?"
+        let id=undefined;
+        if ((dataUser.email === undefined ) || (dataUser.email === "") || (dataUser.novoNome === undefined) ||(dataUser.novoNome === "")) {
+            res.status(400).json({success: false, mensagem: "Campos nao inseridos"})
+        } else {
+            con.query(sql, dataUser.email, function consulta(err, rows) {
+                erro(err);
+                if (rows.length == 1) {
+                    id = rows[0].id;
+                    sql = "UPDATE user SET nome = ? WHERE id = ?"   
+                    con.query(sql, [dataUser.novoNome, id], function alteracao(err, rows) {
+                        erro(err);
+                        if (rows.affectedRows === 1) {
+                            res.status(200).json({success: true});
+                        } else {
+                            res.status(500).json({success: false, mensagem: "Alteração não realizada"});
+                        }
+                    })
+                } else {
+                    res.status(404).json({success: false, mensagem: "Usuario nao encontrado"})
+                }
+            })
+        }
+    },
+    getUser(req, res) {
+        const email= req.body.email;
+        const sql = "SELECT email, nome, token, senha FROM user WHERE email = ?"
+        if ((email === "") || (email=== undefined)) {
+            res.status(400).json({success: false, mensagem: "Os campos estão vazios"});
+        } else {
+            con.query(sql, email, function devolverDados(err, rows) {
+                erro(err);
+                if (rows.length === 1) {
+                    const user = {nome: rows[0].nome, email: rows[0].email, senha: rows[0].senha, token: rows[0].token }
+                    res.status(200).json({success: false, email: user.email, senha: user.senha, token: user.token, nome: user.nome})
+                } else {
+                    res.status(404).json({success: false, mensagem: "Usuario não encontrado"});
+                }
+            });
+        }
+    },
+    updateSenha(req, res) {
+        const dataUser = {email: req.body.email, novaSenha: req.body.senha};
+        const sql = "SELECT id FROM user WHERE email = ?"
+        let id=undefined;
+        if ((dataUser.email === undefined ) || (dataUser.email === "") || (dataUser.novoNome === undefined) ||(dataUser.novoNome === "")) {
+            res.status(400).json({success: false, mensagem: "Campos nao inseridos"})
+        } else {
+            con.query(sql, dataUser.email, function consulta(err, rows) {
+                erro(err);
+                if (rows.length == 1) {
+                    id = rows[0].id;
+                    sql = "UPDATE user SET senha = ? WHERE id = ?"   
+                    con.query(sql, [dataUser.novaSenha, id], function alteracao(err, rows) {
+                        erro(err);
+                        if (rows.affectedRows === 1) {
+                            res.status(200).json({success: true});
+                        } else {
+                            res.status(500).json({success: false, mensagem: "Alteração não realizada"});
+                        }
+                    })
+                } else {
+                    res.status(404).json({success: false, mensagem: "Usuario nao encontrado"})
+                }
+            })
+        }
+    },
 
 }
 
+const erro = function mysqlError(err) {
+    if (err) {
+        res.status(500).json({success: false, mensagem: "erro durante a consulta"});
+    }
+}
 module.exports = api;

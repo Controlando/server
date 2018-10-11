@@ -19,4 +19,11 @@ app.post('/cadastroArray', function(req, res) {
     api.cadastroArray(req, res);
 });
 
+app.put("/updateNome", verificacao, function(req, res) {
+    api.updateName(req, res);
+});
+
+app.put("/updateSenha", verificacao, function(req, res) {
+    api.updateSenha(req, res);
+});
 module.exports = app;
