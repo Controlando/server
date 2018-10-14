@@ -8,13 +8,13 @@ CREATE TABLE IF NOT EXISTS usuario (
 )CHARSET = utf8;
 
 CREATE TABLE IF NOT EXISTS receita(
-	id INT AUTO_INCREMENT NOT NULL,
+		id INT AUTO_INCREMENT NOT NULL,
     usuarioId INT NOT NULL,
     nome VARCHAR(70) NOT NULL,
-	valor FLOAT NOT NULL,
-	data DATE NOT NULL,
-	descricao VARCHAR(70) NULL ,
-	status TINYINT(1) NOT NULL,
+		valor FLOAT NOT NULL,
+		data DATE NOT NULL,
+		descricao VARCHAR(70) NULL ,
+		status TINYINT(1) NOT NULL,
     PRIMARY KEY(id),
     FOREIGN KEY (usuarioId) REFERENCES usuario(id)
 );
@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS meta(
 	valor FLOAT NOT NULL,
 	descrição VARCHAR(60)  NULL,
 	juros FLOAT NOT NULL,
-    
+
 	PRIMARY KEY(id),
     FOREIGN KEY (usuarioId) REFERENCES usuario(id)
 

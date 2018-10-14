@@ -1,5 +1,4 @@
 const jwt = require("jsonwebtoken");
-const mysql = require("mysql");
 const dataError = {success: false, message: "Erro nos dados"}, serverError = {success: false, message: "Erro interno de servidor"}, notFound = {success: false, message: "Usuario nao encontrado no servidor"};
 const config = require("../secretKey/config");
 const servicoEmail = require("./email/email");
@@ -7,7 +6,6 @@ const bcrypts = require("bcryptjs");
 var nodemailer = require('nodemailer');
 const User = require('../classes/user');
 const database = require('../database/database')
-
 var transporte = nodemailer.createTransport({
   service: 'Hotmail',
   auth: {
@@ -15,14 +13,13 @@ var transporte = nodemailer.createTransport({
     pass: 'PocsLindas2018@'
   }
 });
-
-
+const mysql = require("mysql");
 var con = mysql.createConnection({
     user: "root",
     password: "root",
     database: 'controlando'
 });
-  
+
 con.connect(function(err) {
     if (err) {
         console.log((err))
@@ -30,8 +27,11 @@ con.connect(function(err) {
     } else {
         console.log("Connected!");
     }
-    
+
 });
+
+
+
 
 const api = {
     login(req, res) {
@@ -53,7 +53,7 @@ const api = {
                             console.log('oi')
                             let userLogin = {nome: row[0].nome, id: row[0].id, token: undefined};
                             userLogin.token = jwt.sign({nome: userLogin.nome, id: userLogin.id, email: user.email}, config.secret, {
-                                expiresIn: 86400//um dia 
+                                expiresIn: 86400//um dia
                             });
                             res.status(200).json({success: true, email: user.email, senha: user.senha, token: userLogin.token, nome: userLogin.nome})
                         } else {
@@ -63,7 +63,7 @@ const api = {
                 }
             }
         });
-    }, 
+    },
     cadastroUsuario(req, res) {
         let user = {email: req.body.email, senha: req.body.senha, nome : req.body.nome}
         let sql = "SELECT id FROM usuario WHERE email = ?"
@@ -82,7 +82,7 @@ const api = {
                                 res.status(500).json(serverError);
                             } else {
                                 if (row.affectedRows == 1) {
-                                    
+
                                     var Destino = {
                                         from: 'daniel_dbz@hotmail.com',
                                         to: user.email,
@@ -98,9 +98,9 @@ const api = {
                                             }
                                         });
                                 } else {
-                                    
+
                                     res.status(200).json({success: true, message: "Registro nao realizado"});
-                                
+
                                 }
                             }
                         });
@@ -182,7 +182,7 @@ const api = {
         if (status == 1) {
             let userLogin = {nome: user.nome, senha: user.senha, token: undefined, email: user.email};
             userLogin.token = jwt.sign({nome: userLogin.nome, senha: userLogin.senha, email: user.email}, config.secret, {
-                expiresIn: 86400//um dia 
+                expiresIn: 86400//um dia
             });
             console.log(user.nome);
             res.status(200).json({success: true, email: userLogin.email, senha: userLogin.senha, token: userLogin.token, nome: userLogin.nome})
@@ -193,7 +193,7 @@ const api = {
     },
     updateName(req, res) {
         const dataUser = {email: req.body.email, novoNome: req.body.nome};
-        const sql = "SELECT id FROM user WHERE email = ?"
+        const sql = "SELECT id FROM usuario WHERE email = ?"
         let id=undefined;
         if ((dataUser.email === undefined ) || (dataUser.email === "") || (dataUser.novoNome === undefined) ||(dataUser.novoNome === "")) {
             res.status(400).json({success: false, mensagem: "Campos nao inseridos"})
@@ -202,7 +202,7 @@ const api = {
                 erro(err);
                 if (rows.length == 1) {
                     id = rows[0].id;
-                    sql = "UPDATE user SET nome = ? WHERE id = ?"   
+                    sql = "UPDATE usuario SET nome = ? WHERE id = ?"
                     con.query(sql, [dataUser.novoNome, id], function alteracao(err, rows) {
                         erro(err);
                         if (rows.affectedRows === 1) {
@@ -219,7 +219,7 @@ const api = {
     },
     getUser(req, res) {
         const email= req.body.email;
-        const sql = "SELECT email, nome, token, senha FROM user WHERE email = ?"
+        const sql = "SELECT email, nome, token, senha FROM usuario WHERE email = ?"
         if ((email === "") || (email=== undefined)) {
             res.status(400).json({success: false, mensagem: "Os campos estão vazios"});
         } else {
@@ -236,7 +236,7 @@ const api = {
     },
     updateSenha(req, res) {
         const dataUser = {email: req.body.email, novaSenha: req.body.senha};
-        const sql = "SELECT id FROM user WHERE email = ?"
+        const sql = "SELECT id FROM usuario WHERE email = ?"
         let id=undefined;
         if ((dataUser.email === undefined ) || (dataUser.email === "") || (dataUser.novoNome === undefined) ||(dataUser.novoNome === "")) {
             res.status(400).json({success: false, mensagem: "Campos nao inseridos"})
@@ -245,7 +245,7 @@ const api = {
                 erro(err);
                 if (rows.length == 1) {
                     id = rows[0].id;
-                    sql = "UPDATE user SET senha = ? WHERE id = ?"   
+                    sql = "UPDATE usuario SET senha = ? WHERE id = ?"
                     con.query(sql, [dataUser.novaSenha, id], function alteracao(err, rows) {
                         erro(err);
                         if (rows.affectedRows === 1) {
@@ -260,9 +260,85 @@ const api = {
             })
         }
     },
+    inserirReceita(req, res) {
+        let data = {email: req.body.email, nome: req.body.nome, valor: req.body.valor, data: req.body.data, descricao: req.body.descricao, status: req.body.status};
+        let sql = "SELECT id FROM usuario WHERE email = ?";
+        if ((data.email === "" || data.email === undefined) || (data.nome === "" || data.nome) || (data.valor==="" || data.valor === undefined) || (data.data==="") || (data.descricao==="") || data.status === "") {
+          res.status(400).json({success: false, mensagem: "Dados errados"})
+        }
+        con.query(sql, [data.email], function recuperarId(error, rows) {
+            erro(error);
+            if (rows.length  === 0) {
+                res.status(404).json({ success: false, mensage: "Usuario nao encontrado"});
+            } else {
+                if (rows.length === 1) {
+                  //cadastrar receita:
+                    data.usuarioId = rows[0].id;
+                    sql = "INSERT INTO receita(usuarioId, nome, valor, data, descricao, status) VALUES(?, ?, ?, ?, ?, ?)"
+                    con.query(sql, [data.id, data.nome, data.valor, data.descricao, data.status], function cadastrarReceita(error, rows) {
+                        erro(error);
+                        if (rows.affectedRows === 0) {
+                            res.status(500).json({ success: false, mensagem: "Receita nao cadastrada"});
+                        } else {
+                            res.status(200).json({success: true, mensagem: "Receita cadastrada"})
+                        }
+                    })
+                }
+            }
+        })
+    },
+    inserirMeta(req, res) {
+        let dados = {email: req.body.email,  nome: req.body.nome, data: req.body.data, valor: req.body.valor, descricao: req.body.descricao, juros: req.body.juros}
+        let sql = "INSERT INTO meta(usuarioId, nome, data, valor, descricao, juros) VALUES(?, ?, ?, ?, ?, ?)"
+        if ( ((dados.email === "") || (dados.email === undefined)) || ((dados.nome === "") || (dados.nome === undefined)) || ((dados.data === "")|| (dados.data === undefined)) || ((dados.valor === ""))) {
+          res.status(400).json({success: false, mensagem: "Dados errados"})
+        } else {
+            select(email, function inserir(id) {
+                con.query(sql, [id, dados.nome, dados.data,  dados.valor, dados.descricao, dados.juros], function inserir (error, rows) {
+                    erro(error);
+                    if (rows.affectedRows === 0) {
+                        res.status(500).json({succes: false, mensagem: "Dados nao foram salvos com sucesso"});
+                    } else {
+                        if (rows.affectedRows === 1) {
+                            res.status(200).json({success: true, mensagem: "Dados salvos com sucesso"});
+                        }
+                    }
+                })
+            })
+
+        }
+    },
+    inserirDespesa(req, res) {
+        let dados = {email: req.body.email,  nome: req.body.nome, data: req.body.data, valor: req.body.valor, nivel: req.body.nivel, periodo: req.body.periodo, descricao: req.body.descricao, tipo: req.body.tipo}
+        let sql = "INSERT INTO despesa(usuarioId, nome, valor, nivel, periodo, data, descricao, tipo) VALUES(?, ?, ?, ?, ?, ?)"
+        if ( ((dados.email === "") || (dados.email === undefined)) || ((dados.nome === "") || (dados.nome === undefined)) || ((dados.data === "")|| (dados.data === undefined)) || ((dados.valor === ""))) {
+          res.status(400).json({success: false, mensagem: "Dados errados"})
+        } else {
+            select(email, function inserirDespesa(id) {
+                con.query(sql, [id, dados.nome, dados.valor, dados.nivel, dados.periodo, dados.data, dados.descricao, dados.tipo], function inserirDespesaSql(error, rows) {
+                    erro(error);
+                    if (rows.affectedRows === 0) {
+                        res.status(500).json({ success: true, mensagem: "Erro durante o salvamento de dados" });
+                    } else {
+                        res.status(200).json({ success: true, mensagem: "Dados salvos com sucesso"});
+                    }
+                })
+            })
+        }
+    }
 
 }
-
+const select = function selectUsuario(email, next) {
+    const sql = "SELECT id FROM usuario WHERE email = ?";
+    con.query(sql, [email], function selectId(error, rows) {
+        erro(error);
+        if (rows.length === 0) {
+            res.status(404).json({success: true, mensagem: "Usuario nao encontrado"});
+        } else {
+            next(id);
+        }
+    });
+}
 const erro = function mysqlError(err) {
     if (err) {
         res.status(500).json({success: false, mensagem: "erro durante a consulta"});
