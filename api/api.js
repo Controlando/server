@@ -112,17 +112,18 @@ const api = {
     cadastroUsuarioNoEmail(req, res) {
         let data = {nome: req.body.nome, email: req.body.email, senha: req.body.senha}
         let sql = 'SELECT id FROM usuario WHERE email = ?';
-        let senhaHash = bcrypts.hashSync(data.senha, 8);
         if ((data.nome == '') || (data.nome == undefined) || (data.email == '') || (data.email == undefined) || (data.senha == '') || (data.senha == undefined) ) {
             console.log(JSON.stringify(data))
             res.status(401).json( {success: false, message: 'Dados incompletos'} );
         } else {
+          let senhaHash = bcrypts.hashSync(data.senha, 8);
+
         con.query(sql, [data.email], function(err, row) {
             if (err) {
                 res.status(500).json(serverError);
             } else {
                 if (row.length == 1) {
-                    res.status(409).json({success: true, message: 'Usuario já cadastrado no sistema'});
+                    res.status(409).json({success: false, message: 'Usuario já cadastrado no sistema'});
                 } else {
                     if (row.length == 0) {
                         let user = new User(data.nome, data.senha, data.email);
@@ -135,7 +136,7 @@ const api = {
                                     res.status(500).json({ success: false, message: 'Cadastro nao efetuado'});
                                 } else {
                                     if (row.affectedRows == 1) {
-                                        res.status(200).json({ success: false, message: 'Cadastro efetuado efetuado'});
+                                        res.status(200).json({ success: true, message: 'Cadastro efetuado efetuado'});
                                     }
                                 }
                             }
@@ -193,7 +194,7 @@ const api = {
     },
     updateName(req, res) {
         const dataUser = {email: req.body.email, novoNome: req.body.nome};
-        const sql = "SELECT id FROM usuario WHERE email = ?"
+        let sql = "SELECT id FROM usuario WHERE email = ?"
         let id=undefined;
         if ((dataUser.email === undefined ) || (dataUser.email === "") || (dataUser.novoNome === undefined) ||(dataUser.novoNome === "")) {
             res.status(400).json({success: false, mensagem: "Campos nao inseridos"})
@@ -226,8 +227,8 @@ const api = {
             con.query(sql, email, function devolverDados(err, rows) {
                 erro(err);
                 if (rows.length === 1) {
-                    const user = {nome: rows[0].nome, email: rows[0].email, senha: rows[0].senha, token: rows[0].token }
-                    res.status(200).json({success: false, email: user.email, senha: user.senha, token: user.token, nome: user.nome})
+                    const user = {nome: rows[0].nome, email: rows[0].email, senha: rows[0].senha }
+                    res.status(200).json({success: true, email: user.email, senha: user.senha, nome: user.nome})
                 } else {
                     res.status(404).json({success: false, mensagem: "Usuario não encontrado"});
                 }

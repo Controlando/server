@@ -14,11 +14,11 @@ app.post('/teste', function(req, res) {
     console.log('Rota de teste para', JSON.stringify(req.body))
     res.status(200).json({email: req.body.email, senha: req.body.senha, token: "TOKEN PARA DESCRIPTOGRAFAR"});
 });
-app.post('/cadastroArray', function(req, res) {
+/*app.post('/cadastroArray', function(req, res) {
     console.log(JSON.stringify("Body: "+req.body));
     api.cadastroArray(req, res);
 });
-
+*/
 app.put("/updateNome", verificacao, function(req, res) {
     api.updateName(req, res);
 });

@@ -1,3 +1,4 @@
+use controlando;
 CREATE TABLE IF NOT EXISTS usuario (
 	id INT AUTO_INCREMENT NOT NULL,
     email VARCHAR(60) NOT NULL,
@@ -9,8 +10,8 @@ CREATE TABLE IF NOT EXISTS usuario (
 
 CREATE TABLE IF NOT EXISTS receita(
 		id INT AUTO_INCREMENT NOT NULL,
-    usuarioId INT NOT NULL,
-    nome VARCHAR(70) NOT NULL,
+		usuarioId INT NOT NULL,
+		nome VARCHAR(70) NOT NULL,
 		valor FLOAT NOT NULL,
 		data DATE NOT NULL,
 		descricao VARCHAR(70) NULL ,
@@ -38,7 +39,7 @@ CREATE TABLE IF NOT EXISTS despesa(
 
 	id INT NOT NULL AUTO_INCREMENT,
 	usuarioId INT NOT NULL,
-    nome VARCHAR(60) NOT NULL,
+  nome VARCHAR(60) NOT NULL,
 	valor FLOAT NOT NULL,
 	nivel INT NOT NULL,
 	periodo DATE NULL,
@@ -46,5 +47,5 @@ CREATE TABLE IF NOT EXISTS despesa(
 	descricao VARCHAR(70) NOT NULL,
 	tipo INT NOT NULL,
 	PRIMARY KEY(id),
-    FOREIGN KEY(usuario) REFERENCES usuario(id)
+    FOREIGN KEY(usuarioId) REFERENCES usuario(id)
 )

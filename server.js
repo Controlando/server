@@ -7,6 +7,9 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 app.use(routes);
+app.use("/despesa", require("./routes/despesa."))
+app.use("/meta", require("./routes/metas"))
+app.use("/receita", require("./routes/receita"))
 app.use(function (req, res, next) {
 
     // Website you wish to allow to connect
@@ -24,6 +27,6 @@ app.use(function (req, res, next) {
     // Pass to next layer of middleware
     next();
 });
-app.listen(3000, "192.168.0.35", function() {
+app.listen(3000, "192.168.0.20", function() {
     console.log("Servidor funcionando na porta"+ JSON.stringify(this.address()));
 });
