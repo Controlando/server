@@ -1,3 +1,4 @@
+CREATE SCHEMA controlando;
 use controlando;
 CREATE TABLE IF NOT EXISTS usuario (
 	id INT AUTO_INCREMENT NOT NULL,
@@ -19,16 +20,15 @@ CREATE TABLE IF NOT EXISTS receita(
     PRIMARY KEY(id),
     FOREIGN KEY (usuarioId) REFERENCES usuario(id)
 );
-
 CREATE TABLE IF NOT EXISTS meta(
-
 	id INT NOT NULL AUTO_INCREMENT,
 	usuarioId INT NOT NULL,
     nome VARCHAR(60) NOT NULL,
 	data DATE NOT NULL,
 	valor FLOAT NOT NULL,
-	descrição VARCHAR(60)  NULL,
+	descricao VARCHAR(60)  NULL,
 	juros FLOAT NOT NULL,
+	status TINYINT(1) NOT NULL,
 
 	PRIMARY KEY(id),
     FOREIGN KEY (usuarioId) REFERENCES usuario(id)
@@ -39,13 +39,14 @@ CREATE TABLE IF NOT EXISTS despesa(
 
 	id INT NOT NULL AUTO_INCREMENT,
 	usuarioId INT NOT NULL,
-  nome VARCHAR(60) NOT NULL,
+ 	nome VARCHAR(60) NOT NULL,
 	valor FLOAT NOT NULL,
 	nivel INT NOT NULL,
 	periodo DATE NULL,
 	data DATE NOT NULL,
 	descricao VARCHAR(70) NOT NULL,
-	tipo INT NOT NULL,
+    
+    status TINYINT(1) NOT NULL,
 	PRIMARY KEY(id),
     FOREIGN KEY(usuarioId) REFERENCES usuario(id)
 )
