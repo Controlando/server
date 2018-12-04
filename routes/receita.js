@@ -11,4 +11,10 @@ app.post("/cadastroReceita", verificacao, function (req, res) {
 app.get("/listar", verificacao, function (req, res) {
     api.listarDados(req, res);
 });
+app.get("/listaReceita", verificacao, function (req, res) {
+    api.listarReceita(req, res);
+});
+app.get("/getReceita", verificacao, function (req, res) {
+    api.getReceita(req, res);
+});
 module.exports = app;

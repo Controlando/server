@@ -16,10 +16,9 @@ var transporte = nodemailer.createTransport({
 const mysql = require("mysql");
 var con = mysql.createConnection({
     user: "root",
-    //password: "root",
+    password: "root",
     database: 'controlando'
 });
-
 con.connect(function (err) {
     if (err) {
         console.log((err))
@@ -416,7 +415,6 @@ const api = {
                                                 res.status(500).json({ success: false, mensagem: "Erro durante a despesa" })
                                             } else {
                                                 if ((rows.length == 0 ) || (rows.length > 0)) {
-                                                    //res.status(404).json({ success: false, mensagem: "E"})
                                                     rows.forEach( position => {
                                                         let despesa = {};
                                                         despesa.nome = position.nome;
@@ -440,8 +438,63 @@ const api = {
                 }
             });
         }
+    },
+    listarReceita(req, res) {
+        let id = req.userId;
+        let sql = "SELECT id, nome, valor, DATE_FORMAT(data,'%d-%m-%Y') as dataReceita, descricao FROM receita WHERE usuarioId = ?";
+        let receita = [];
+        if ((id == undefined) || (id == "")) {
+            res.status(500).json({ success: false, message: "Header não enviado" });
+        } else {
+            con.query(sql, [id], function (err, rows) {
+                if (err) {
+                    res.status(500).json({ succes: false, mensagem: "erro de servidor" })
+                } else {
+                    if (rows.affectedRows == 0) {
+                        receita = [];
+                        res.status(200).json(receita);
+                    } else {
+                        rows.forEach(position => {
+                            let obj = {};
+                            obj.id = position.id;
+                            obj.nome = position.nome;
+                            obj.valor = position.valor;
+                            obj.dataReceita = position.dataReceita;
+                            obj.descricao = position.descricao;
+                            receita.push(obj);
+                        });
+                        res.status(200).json(receita);
+                    }
+                }
+            })
+        }
+    },
+    getReceita(req, res) {
+        let id = req.headers["id"];
+        let sql = "SELECT id, nome, valor, DATE_FORMAT(data,'%d-%m-%Y') as dataReceita, descricao FROM receita WHERE id = ?";
+        let receita = {nome, id, valor, dataReceita, descricao}
+        if ((id == undefined) || (id == "")) {
+            res.status(500).json({ success: false, message: "Header não enviado" });
+        } else {
+            con.query(sql, [id], function (err, rows) {
+                if (err) {
+                    res.status(500).json({ succes: false, mensagem: "erro de servidor" })
+                } else {
+                    if (rows.affectedRows == 0) {
+                        receita = [];
+                        res.status(200).json(receita);
+                    } else {
+                        receita.id = rows[0].id;
+                        receita.nome = rows[0].nome;
+                        receita.valor = rows[0].valor;
+                        receita.dataReceita = rows[0].dataReceita;
+                        receita.descricao = rows[0].descricao;
+                        res.status(200).json(receita);
+                    }
+                }
+            });
+        }
     }
-
 }
 const select = function selectUsuario(id, next) {
     const sql = "SELECT id FROM usuario WHERE id = ?";
