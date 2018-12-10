@@ -18,4 +18,14 @@ app.get("/listaReceita", verificacao, function (req, res) {
 app.get("/getReceita", verificacao, function (req, res) {
     api.getReceita(req, res);
 });
+app.get("/getSaldo", verificacao, function (req, res) {
+    api.getSaldo(req, res);
+});
+app.put("/alterarReceita", verificacao, function (req, res) {
+    console.log('a')
+    api.alterarReceita(req, res);
+});
+app.delete("/deletarReceita", verificacao, function (req, res) {
+    api.deletarReceita(req, res);
+})
 module.exports = app;

@@ -8,5 +8,7 @@ app.post("/cadastroDespesa", verificacao, function(req, res) {
     api.inserirDespesa(req, res);
 });
 
-
+app.get("/listaDespesa", verificacao, function(req, res) {
+    api.listarDespesa(req, res);
+})
 module.exports = app;
