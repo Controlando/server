@@ -12,6 +12,7 @@ app.get("/listar", verificacao, function (req, res) {
     api.listarDados(req, res);
 });
 app.get("/listaReceita", verificacao, function (req, res) {
+    console.log(req.headers["token"])
     api.listarReceita(req, res);
 });
 app.get("/getReceita", verificacao, function (req, res) {

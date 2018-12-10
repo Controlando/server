@@ -441,19 +441,24 @@ const api = {
     },
     listarReceita(req, res) {
         let id = req.userId;
-        let sql = "SELECT id, nome, valor, DATE_FORMAT(data,'%d-%m-%Y') as dataReceita, descricao FROM receita WHERE usuarioId = ?";
+        let sql = "SELECT id, nome, valor, DATE_FORMAT(data,'%d-%m-%Y') as dataReceita, descricao FROM receita WHERE usuarioId = ? AND status = 1";
         let receita = [];
         if ((id == undefined) || (id == "")) {
+            console.log("ENTROU AQ")
             res.status(500).json({ success: false, message: "Header não enviado" });
         } else {
             con.query(sql, [id], function (err, rows) {
                 if (err) {
+                    console.log(err)
                     res.status(500).json({ succes: false, mensagem: "erro de servidor" })
                 } else {
-                    if (rows.affectedRows == 0) {
+                    if (rows.length == 0) {
                         receita = [];
+                        console.log("ENTROU AQ")
+            
                         res.status(200).json(receita);
                     } else {
+            
                         rows.forEach(position => {
                             let obj = {};
                             obj.id = position.id;
@@ -463,6 +468,8 @@ const api = {
                             obj.descricao = position.descricao;
                             receita.push(obj);
                         });
+                        console.log("ENTROU AQ", receita)
+
                         res.status(200).json(receita);
                     }
                 }
@@ -471,13 +478,14 @@ const api = {
     },
     getReceita(req, res) {
         let id = req.headers["id"];
-        let sql = "SELECT id, nome, valor, DATE_FORMAT(data,'%d-%m-%Y') as dataReceita, descricao FROM receita WHERE id = ?";
-        let receita = {nome, id, valor, dataReceita, descricao}
+        let sql = "SELECT id, nome, valor, DATE_FORMAT(data,'%d-%m-%Y') as dataReceita, descricao FROM receita WHERE id = ? AND status = 1";
+        let receita = {nome: undefined, id: undefined, valor: undefined, dataReceita: undefined, descricao: undefined}
         if ((id == undefined) || (id == "")) {
             res.status(500).json({ success: false, message: "Header não enviado" });
         } else {
             con.query(sql, [id], function (err, rows) {
                 if (err) {
+                    console.log(err)
                     res.status(500).json({ succes: false, mensagem: "erro de servidor" })
                 } else {
                     if (rows.affectedRows == 0) {
@@ -494,6 +502,98 @@ const api = {
                 }
             });
         }
+    },
+    alterarReceita(req, res) {
+        let sql = "UPDATE receita SET nome = ?, valor = ?, data = ?, descricao = ?  WHERE id = ?";
+        let body = { nome : req.body.nome, valor: req.body.valor, dataReceita: req.body.data, descricao: req.body.descricao, id: req.headers["id"] };
+        let DMA = [];
+        let dataFormatada;
+        DMA = body.dataReceita.split('/');
+        dataFormatada = `${DMA[2]}/${DMA[1]}/${DMA[0]}`;
+        con.query(sql, [body.nome, body.valor, dataFormatada, body.descricao, body.id], function(err, rows) {
+            if (err) {
+                res.status(500).json(serverError);
+            } else {
+                if (rows.affectedRows == 1 ) {
+                    res.status(200).json({ success: true, message: "OK"});
+                } else {
+                    res.status(500).json({ success: false, message: "Dados nao atualizados"});
+                }
+            }
+        }) 
+    },
+    deletarReceita(req, res) {
+        let sql = "UPDATE receita SET status = 0  WHERE id = ?";
+        let body = { id: req.headers["id"] };
+        con.query(sql, [body.id], function(err, rows) {
+            if (err) {
+                res.status(500).json(serverError);
+            } else {
+                if (rows.affectedRows == 1 ) {
+                    res.status(200).json({ success: true, message: "OK"});
+                } else {
+                    res.status(500).json({ success: false, message: "Dados nao deletados"});
+                }
+            }
+        }) 
+    },
+    //Despesa
+    alterarDespesa(req, res) {
+        let sql = "UPDATE despesa SET nome = ?, valor = ?, data = ?, descricao = ? WHERE id = ?";
+        let body = { nome : req.body.nome, valor: req.body.valor, dataReceita: req.body.data, descricao: req.body.descricao, id: req.headers["id"] };
+        let DMA = [];
+        let dataFormatada;
+        DMA = body.dataReceita.split('/');
+        dataFormatada = `${DMA[2]}/${DMA[1]}/${DMA[0]}`;
+        con.query(sql, [body.nome, body.valor, dataFormatada, body.descricao, body.id], function(err, rows) {
+            if (err) {
+                res.status(500).json(serverError);
+            } else {
+                if (rows.affectedRows == 1 ) {
+                    res.status(200).json({ success: true, message: "OK"});
+                } else {
+                    res.status(500).json({ success: false, message: "Dados nao atualizados"});
+                }
+            }
+        }) 
+    },
+    deletarDespesa(req, res) {
+        let sql = "UPDATE despesa SET status = 0  WHERE id = ?";
+        let body = { id: req.headers["id"] };
+        con.query(sql, [body.id], function(err, rows) {
+            if (err) {
+                res.status(500).json(serverError);
+            } else {
+                if (rows.affectedRows == 1 ) {
+                    res.status(200).json({ success: true, message: "OK"});
+                } else {
+                    res.status(500).json({ success: false, message: "Dados nao deletados"});
+                }
+            }
+        }) 
+    },
+    //metas
+    alterarMetas(req, res) {
+        let sql = "UPDATE meta SET nome = ?, valor = ?, data = ?, descricao = ?  WHERE id = ?";
+        let body = { nome : req.body.nome, valor: req.body.valor, dataReceita: req.body.data, descricao: req.body.descricao, id: req.headers["id"] };
+        let DMA = [];
+        let dataFormatada;
+        DMA = body.dataReceita.split('/');
+        dataFormatada = `${DMA[2]}/${DMA[1]}/${DMA[0]}`;
+        con.query(sql, [body.nome, body.valor, dataFormatada, body.descricao, body.id], function(err, rows) {
+            if (err) {
+                res.status(500).json(serverError);
+            } else {
+                if (rows.affectedRows == 1 ) {
+                    res.status(200).json({ success: true, message: "OK"});
+                } else {
+                    res.status(500).json({ success: false, message: "Dados nao atualizados"});
+                }
+            }
+        }) 
+    },
+    deletarMetas(req, res) {
+
     }
 }
 const select = function selectUsuario(id, next) {
